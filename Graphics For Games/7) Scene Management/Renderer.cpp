@@ -72,7 +72,9 @@ void Renderer::SortNodeLists() {
 		SceneNode::CompareByCameraDistance);
 	std::sort(nodeList.begin(),
 		nodeList.end(),
-		SceneNode::CompareByCameraDistance);}void Renderer::DrawNodes() {
+		SceneNode::CompareByCameraDistance);
+}
+void Renderer::DrawNodes() {
 	for (vector < SceneNode* >::const_iterator i = nodeList.begin();
 		i != nodeList.end(); ++i) {
 		DrawNode((*i));
@@ -91,7 +93,8 @@ void Renderer::DrawNode(SceneNode* n) {
 		glUniform1i(glGetUniformLocation(currentShader -> GetProgram(), "useTexture"), (int)n -> GetMesh() -> GetTexture());
 
 		n -> Draw(*this);
-	}}
+	}
+}
 
 void Renderer::RenderScene() {
 	BuildNodeLists(root);
@@ -111,4 +114,7 @@ void Renderer::RenderScene() {
 	ClearNodeLists();
 }
 
-void Renderer::ClearNodeLists() {	transparentNodeList.clear();	nodeList.clear();}
+void Renderer::ClearNodeLists() {
+	transparentNodeList.clear();
+	nodeList.clear();
+}
