@@ -1,7 +1,7 @@
 #pragma once
 #include "Plane.h"
 #include "Matrix4.h"
-#include "../Graphics For Games/7) Scene Management/SceneNode.h"
+#include "SceneNode.h"
 
 class Frustum{
 public:

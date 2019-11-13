@@ -34,6 +34,7 @@ _-_-_-_-_-_-_-""  ""
 
 #include "Shader.h"		//Students make this file...
 #include "Mesh.h"		//And this one...
+#include "Light.h"
 
 using std::vector;
 
@@ -117,10 +118,10 @@ protected:
 	virtual void	Resize(int x, int y);	
 	void			UpdateShaderMatrices();
 	void			SetCurrentShader(Shader*s);
+	void			SetShaderLight(const Light& l);
 
 	void			SetTextureRepeating(GLuint target, bool state);
 
-	//void			SetShaderLight(const Light &l);
 
 	void			DrawDebugPerspective(Matrix4*matrix = 0);
 	void			DrawDebugOrtho(Matrix4*matrix = 0);

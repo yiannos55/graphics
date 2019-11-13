@@ -1,8 +1,8 @@
 #pragma once
-#include "../../nclgl/Matrix4.h"
-#include "../../nclgl/Vector3.h"
-#include "../../nclgl/Vector4.h"
-#include "../../nclgl/Mesh.h"
+#include "Matrix4.h"
+#include "Vector3.h"
+#include "Vector4.h"
+#include "Mesh.h"
 #include <vector>
 
 class SceneNode
@@ -57,4 +57,3 @@ protected:
 	Vector4 colour;
 	std::vector<SceneNode*> children;
 };
-

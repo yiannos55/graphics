@@ -3,7 +3,7 @@
 #include "../../nclgl/OGLRenderer.h"
 #include "../../nclgl/Camera.h"
 #include "../../nclgl/Frustum.h"
-#include "SceneNode.h"
+#include "../../nclgl/SceneNode.h"
 #include "CubeRobot.h"
 #include <algorithm>
 

@@ -4,17 +4,17 @@ Implements:
 Author:Rich Davison	<richard.davison4@newcastle.ac.uk>
 Description: Implementation of id Software's MD5 skeletal animation format.
 
-MD5Anims are slightly less complicated than MD5Meshes. They consist of a 
+MD5Anims are slightly less complicated than MD5Meshes. They consist of a
 'base frame', which is like a bind pose for an animation, and a number of
 animation frames, each of which has a number of values in it, equating to the
 differences between this frame of animation and the base frame. Depending on
 the software used to export the MD5Anim, the baseframe might be 'empty',
 meaning each frame consist of every transform for every joint.
 
--_-_-_-_-_-_-_,------,   
+-_-_-_-_-_-_-_,------,
 _-_-_-_-_-_-_-|   /\_/\   NYANYANYAN
 -_-_-_-_-_-_-~|__( ^ .^) /
-_-_-_-_-_-_-_-""  ""   
+_-_-_-_-_-_-_-""  ""
 
 *//////////////////////////////////////////////////////////////////////////////
 #include "common.h"
@@ -70,7 +70,7 @@ Every MD5Anim has a number of MD5AnimJoints. These are essentially the
 same as MD5Mesh joints, with an added bitmask, which determines which
 components of the joint, if any, are updated in this animation.
 */
-struct MD5AnimJoint{
+struct MD5AnimJoint {
 	std::string  name;	//Name of this joint
 	int parent;			//Index of the parent of this joint
 	int flags;			//bitmask used to determine which components update
@@ -93,11 +93,11 @@ of every MD5AnimJoint
 */
 struct MD5BaseFrame {
 	Quaternion* orientations;	//Orientations for every base frame joint
-	Vector3*	positions;		//Positions for every base frame joint
+	Vector3* positions;		//Positions for every base frame joint
 
 	MD5BaseFrame::MD5BaseFrame() {
 		orientations = NULL;
-		positions    = NULL;
+		positions = NULL;
 	}
 
 	//Delete our heap memory
@@ -132,10 +132,10 @@ struct MD5Skeleton;
 /*
 Now for the class definition. Every MD5Anim has a number of joints
 (which should equal the number of joints of the MD5Mesh it is to be applied to)
-a number of frames of animation, an axis-aligned bounding box for every frame, 
+a number of frames of animation, an axis-aligned bounding box for every frame,
 and a baseFrame.
 */
-class MD5Anim	{
+class MD5Anim {
 public:
 	//Constructor takes in a filename to load the MD5Anim data from
 	MD5Anim(std::string filename);
@@ -143,12 +143,12 @@ public:
 
 	//Transforms the passed in skeleton to the correct positions and
 	//orientations for the desired frame
-	void	TransformSkeleton(MD5Skeleton &skel,  unsigned int frame);
+	void	TransformSkeleton(MD5Skeleton& skel, unsigned int frame);
 
 	//Returns the framerate
-	unsigned int	GetFrameRate() {return frameRate;}
+	unsigned int	GetFrameRate() { return frameRate; }
 	//Returns the number of frames of animation
-	unsigned int	GetNumFrames() {return numFrames;}
+	unsigned int	GetNumFrames() { return numFrames; }
 
 protected:
 	//Helper function used by the constructor to load in an MD5Anim from the 
@@ -156,25 +156,25 @@ protected:
 	void	LoadMD5Anim(std::string filename);
 
 	//Helper function for LoadMD5Anim to load in the joints
-	void	LoadMD5AnimHierarchy(std::ifstream &from, unsigned int &count);
+	void	LoadMD5AnimHierarchy(std::ifstream& from, unsigned int& count);
 
 	//Helper function for LoadMD5Anim to load in the bounding boxes
-	void	LoadMD5AnimBounds(std::ifstream &from,unsigned int &count );
+	void	LoadMD5AnimBounds(std::ifstream& from, unsigned int& count);
 
 	//Helper function for LoadMD5Anim to load in the base frame
-	void	LoadMD5AnimBaseFrame(std::ifstream &from);
+	void	LoadMD5AnimBaseFrame(std::ifstream& from);
 
 	//Helper function for LoadMD5Anim to load in animation frames
-	void	LoadMD5AnimFrame(std::ifstream &from, unsigned int &count);
+	void	LoadMD5AnimFrame(std::ifstream& from, unsigned int& count);
 
 	unsigned int	frameRate;		//Required framerate of this animation
 	unsigned int	numJoints;		//Number of joints in this animation
 	unsigned int	numFrames;		//Number of frames in this animation
 	unsigned int	numAnimatedComponents; //Number of transform differences per frame
 
-	MD5AnimJoint*	joints;			//Array of joints for this animation
-	MD5Bounds*		bounds;			//Array of bounding boxes for this animation
-	MD5Frame*		frames;			//Array of individual frames for this animation
+	MD5AnimJoint* joints;			//Array of joints for this animation
+	MD5Bounds* bounds;			//Array of bounding boxes for this animation
+	MD5Frame* frames;			//Array of individual frames for this animation
 	MD5BaseFrame	baseFrame;		//BaseFrame for this animation
 };
 #endif

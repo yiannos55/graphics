@@ -1,26 +1,28 @@
-d:\csc8502 2018\nclgl\debug\nclgl.pdb
-d:\csc8502 2018\nclgl\debug\nclgl.idb
-d:\csc8502 2018\nclgl\debug\gametimer.obj
-d:\csc8502 2018\nclgl\debug\keyboard.obj
-d:\csc8502 2018\nclgl\debug\matrix4.obj
-d:\csc8502 2018\nclgl\debug\md5anim.obj
-d:\csc8502 2018\nclgl\debug\md5filedata.obj
-d:\csc8502 2018\nclgl\debug\md5mesh.obj
-d:\csc8502 2018\nclgl\debug\md5node.obj
-d:\csc8502 2018\nclgl\debug\mouse.obj
-d:\csc8502 2018\nclgl\debug\quaternion.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\nclgl.pdb
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\nclgl.idb
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\quaternion.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\objmesh.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\mouse.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\md5node.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\md5mesh.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\md5filedata.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\md5anim.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\matrix4.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\keyboard.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\gametimer.obj
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\nclgl.tlog\cl.command.1.tlog
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\nclgl.tlog\cl.read.1.tlog
-c:\users\rich\desktop\csc8502 2019\download\nclgl\debug\nclgl.tlog\cl.write.1.tlog
+h:\graphics\nclgl\debug\nclgl.pdb
+h:\graphics\nclgl\debug\nclgl.idb
+h:\graphics\nclgl\debug\window.obj
+h:\graphics\nclgl\debug\shader.obj
+h:\graphics\nclgl\debug\quaternion.obj
+h:\graphics\nclgl\debug\oglrenderer.obj
+h:\graphics\nclgl\debug\objmesh.obj
+h:\graphics\nclgl\debug\mouse.obj
+h:\graphics\nclgl\debug\mesh.obj
+h:\graphics\nclgl\debug\md5node.obj
+h:\graphics\nclgl\debug\md5mesh.obj
+h:\graphics\nclgl\debug\md5filedata.obj
+h:\graphics\nclgl\debug\md5anim.obj
+h:\graphics\nclgl\debug\matrix4.obj
+h:\graphics\nclgl\debug\keyboard.obj
+h:\graphics\nclgl\debug\gametimer.obj
+h:\graphics\nclgl\debug\camera.obj
+h:\graphics\nclgl\debug\plane.obj
+h:\graphics\nclgl\debug\frustum.obj
+h:\graphics\nclgl\debug\heightmap.obj
+h:\graphics\graphics for games\debug\nclgl.lib
+h:\graphics\graphics for games\debug\nclgl.pdb
+h:\graphics\nclgl\debug\nclgl.tlog\cl.command.1.tlog
+h:\graphics\nclgl\debug\nclgl.tlog\cl.read.1.tlog
+h:\graphics\nclgl\debug\nclgl.tlog\cl.write.1.tlog
+h:\graphics\nclgl\debug\nclgl.tlog\lib-link.read.1.tlog
+h:\graphics\nclgl\debug\nclgl.tlog\lib-link.write.1.tlog
+h:\graphics\nclgl\debug\nclgl.tlog\lib.command.1.tlog

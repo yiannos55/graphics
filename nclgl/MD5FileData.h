@@ -2,19 +2,19 @@
 Class:MD5FileData
 Implements:
 Author:Rich Davison	<richard.davison4@newcastle.ac.uk>
-Description: Implementation of id Software's MD5 skeletal animation format. 
+Description: Implementation of id Software's MD5 skeletal animation format.
 
 This class stores all of the arrays of data loaded in from an MD5Mesh file.
 
--_-_-_-_-_-_-_,------,   
+-_-_-_-_-_-_-_,------,
 _-_-_-_-_-_-_-|   /\_/\   NYANYANYAN
 -_-_-_-_-_-_-~|__( ^ .^) /
-_-_-_-_-_-_-_-""  ""   
+_-_-_-_-_-_-_-""  ""
 
 *//////////////////////////////////////////////////////////////////////////////
 #include "common.h"
-#ifdef USE_MD5MESH
-#ifdef WEEK_2_CODE
+//#ifdef USE_MD5MESH
+//#ifdef WEEK_2_CODE
 #pragma once
 
 #include "MD5FileData.h"
@@ -47,7 +47,7 @@ most of them will only actually be used once.
 
 /*
 An MD5Mesh is formed from various data structures, all of which are loaded
-in from the file and stored, as they're used for skinning the mesh. 
+in from the file and stored, as they're used for skinning the mesh.
 
 */
 
@@ -69,14 +69,14 @@ Each MD5Skeleton has an array of joints, which are arranged in a parent/child
 hierarchy, forming the skeleton. Each joint is given a name, so it can be
 targeted by scripting ('GetTransformOfJoint("Hand") etc). Joint names are
 stored separately, to avoid an annoying string copying problem with using
-memcpy on an array of MD5Joints. MD5Joints have their transform twice - 
+memcpy on an array of MD5Joints. MD5Joints have their transform twice -
 once as separate Vector3 and Quaternion (loaded from the MD5Mesh file) and
 once as a Matrix4, generated at run-time. This is to make it more obvious
 that joints really are just scenenode transforms like you are used to, as
 well as making it slightly more efficient to transform the mesh.
 */
 struct MD5Joint {
-	string*		name;			//Pointer to the name of this joint
+	string* name;			//Pointer to the name of this joint
 	int			parent;			//Index into the joint array of parent
 	int			forceWorld;
 	Vector3		position;		//Position relative to parent joint
@@ -119,13 +119,13 @@ struct MD5Weight {
 Each MD5Mesh has a skeleton, built up out of an array of MD5Joints.
 */
 struct MD5Skeleton {
-	MD5Joint*joints;	//Pointer to our array of MD5Joints
+	MD5Joint* joints;	//Pointer to our array of MD5Joints
 	int numJoints;		//Number of joints in the skeleton
 
 	//Always initialise pointers to null!
 	MD5Skeleton() {
-		joints		= NULL;
-		numJoints	= 0;
+		joints = NULL;
+		numJoints = 0;
 	}
 
 	//MD5Skeleton's have heap memory, so we must free it!
@@ -138,7 +138,7 @@ struct MD5Skeleton {
 Each MD5SubMesh has an array of MD5SubMeshes. Depending on the actual MD5Mesh
 loaded there might only be one MD5SubMesh (the whole model) or a number of them
 (one for each arm, leg, etc). Each has an array of MD5Tris, MD5Weights, and
-MD5Verts. We also store the OpenGL names for the diffuse and bump textures 
+MD5Verts. We also store the OpenGL names for the diffuse and bump textures
 here - don't worry if you don't know what a bump map is yet!
 */
 struct MD5SubMesh {
@@ -151,18 +151,18 @@ struct MD5SubMesh {
 	unsigned int bumpIndex;	//OGL Name of the bump map (if any)
 #endif
 
-	MD5Tri*		tris;		//Pointer to array of MD5Tris of this MD5SubMesh
-	MD5Weight*	weights;	//Pointer to array of MD5Weights of this MD5SubMesh
-	MD5Vert*	verts;		//Pointer to array of MD5Verts of this MD5SubMesh
+	MD5Tri* tris;		//Pointer to array of MD5Tris of this MD5SubMesh
+	MD5Weight* weights;	//Pointer to array of MD5Weights of this MD5SubMesh
+	MD5Vert* verts;		//Pointer to array of MD5Verts of this MD5SubMesh
 
 	MD5SubMesh() {
-		texIndex	= 0;
+		texIndex = 0;
 #ifdef	MD5_USE_TANGENTS_BUMPMAPS
-		bumpIndex	= 0;
+		bumpIndex = 0;
 #endif
-		tris		= NULL;
-		weights		= NULL;
-		verts		= NULL;
+		tris = NULL;
+		weights = NULL;
+		verts = NULL;
 	}
 
 	/*
@@ -178,27 +178,27 @@ struct MD5SubMesh {
 
 class MD5Anim;
 
-class MD5FileData	{
+class MD5FileData {
 public:
 	friend class MD5Anim;
 	friend class MD5Mesh;
 	friend class MD5Node;
 
-	MD5FileData(const std::string &filename);
+	MD5FileData(const std::string& filename);
 	~MD5FileData(void);
 
-	void		CloneSkeleton(MD5Skeleton &into) const;	
+	void		CloneSkeleton(MD5Skeleton& into) const;
 
-//My experimental hardware skinning uses some extra data, and a couple of
-//functions to upload that data to the graphics card...
+	//My experimental hardware skinning uses some extra data, and a couple of
+	//functions to upload that data to the graphics card...
 #ifdef MD5_USE_HARDWARE_SKINNING 
 	void		BindTextureBuffers() const;
-	void		UpdateTransformTBO(const MD5Skeleton &skel) const;
+	void		UpdateTransformTBO(const MD5Skeleton& skel) const;
 #endif
 
-	Mesh*		GetRootMesh() const {return (Mesh*)rootMesh;}
+	Mesh* GetRootMesh() const { return (Mesh*)rootMesh; }
 
-	MD5Anim*	GetAnim(const string &name) const;
+	MD5Anim* GetAnim(const string& name) const;
 
 	/*
 	Adds an MD5Anim to the MD5Mesh's map of animations. This should probably
@@ -206,7 +206,7 @@ public:
 	*/
 	void		AddAnim(std::string filename);
 
-	int			GetIndexForJointName(const string &name) const;
+	int			GetIndexForJointName(const string& name) const;
 
 	/*
 	idTech games (as well as Unreal engine games, and some others) don't use
@@ -222,21 +222,21 @@ public:
 	static const Matrix4 inverseConversionMatrix;
 
 
-protected:	
+protected:
 	/*
 	Helper function used by LoadMD5Mesh to load in the joints for this mesh
 	from an MD5Mesh file.
 	*/
-	int		LoadMD5Joints(std::ifstream &from);
+	int		LoadMD5Joints(std::ifstream& from);
 
 	/*
-	Helper function used by LoadMD5Mesh to load in the submeshes that make 
+	Helper function used by LoadMD5Mesh to load in the submeshes that make
 	up this mesh from an MD5Mesh file.
 	*/
-	void	LoadMD5SubMesh(std::ifstream &from, int &count);
+	void	LoadMD5SubMesh(std::ifstream& from, int& count);
 
 	/*
-	Once all of a MD5Mesh file's data has been loaded in, we can create the 
+	Once all of a MD5Mesh file's data has been loaded in, we can create the
 	various Mesh class instances required to render our new MD5Mesh, including
 	setting up all of the VBOs and VAOs
 	*/
@@ -251,18 +251,18 @@ protected:
 	to it, containing all of the uniforms that should be sent to the game's
 	active shader, and which textures should be used for which texture sampler.
 	As we don't have anything quite so extravagant in this tutorial series,
-	instead we have a series of shader 'proxy' files, containing two strings - 
+	instead we have a series of shader 'proxy' files, containing two strings -
 	one for the diffuse map, and one for the bump map.
 	*/
-	void	LoadShaderProxy(std::string filename, MD5SubMesh &m);
+	void	LoadShaderProxy(std::string filename, MD5SubMesh& m);
 
 
 	MD5Skeleton		bindPose;			//'Default' bindpose skeleton
 
-	MD5Mesh*		rootMesh;
+	MD5Mesh* rootMesh;
 
 
-	MD5SubMesh*		subMeshes;			//array of MD5SubMeshes
+	MD5SubMesh* subMeshes;			//array of MD5SubMeshes
 	unsigned int	numSubMeshes;		//How many submeshes this mesh has
 	vector<string>	jointNames;			//Array of joint names for the skeleton
 
@@ -281,11 +281,11 @@ protected:
 	GLuint			weightTexture;		//TBO Texture we use to access the VBO
 	GLuint			transformTexture;	//TBO Texture we use to access the VBO
 
-	Matrix4*		transforms;			//Array of skeleton transforms
-	Vector3*		weightings;			//Array of Vertex weightings
+	Matrix4* transforms;			//Array of skeleton transforms
+	Vector3* weightings;			//Array of Vertex weightings
 #endif
 
 
 };
-#endif
-#endif
+//#endif
+//#endif
