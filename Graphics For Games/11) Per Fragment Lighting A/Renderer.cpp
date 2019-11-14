@@ -4,7 +4,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent) {
 	camera = new Camera(0.0f, 0.0f, Vector3(
 	RAW_WIDTH * HEIGHTMAP_X / 2.0f, 500, RAW_HEIGHT * HEIGHTMAP_Z));
 
-	heightMap = new HeightMap(TEXTUREDIR "terrain.raw ");
+	heightMap = new HeightMap(TEXTUREDIR "terrain.raw");
 	currentShader = new Shader(	SHADERDIR "PerPixelVertex.glsl",
 								SHADERDIR "PerPixelFragment.glsl");
 	
@@ -17,9 +17,9 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent) {
 
 	SetTextureRepeating(heightMap -> GetTexture(), true);
 
-	light = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f),
-		500.0f, (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)),
-		Vector4(1, 1, 1, 1), (RAW_WIDTH * HEIGHTMAP_X) / 2.0f);
+	light = new Light(	Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500.0f, (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)),
+						Vector4(1, 0, 0, 1),
+						(RAW_WIDTH * HEIGHTMAP_X) / 1.5f);
 
 		projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
 			(float)width / (float)height, 45.0f);

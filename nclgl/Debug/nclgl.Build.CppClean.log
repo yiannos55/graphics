@@ -2,7 +2,9 @@ h:\graphics\nclgl\debug\nclgl.pdb
 h:\graphics\nclgl\debug\nclgl.idb
 h:\graphics\nclgl\debug\window.obj
 h:\graphics\nclgl\debug\shader.obj
+h:\graphics\nclgl\debug\scenenode.obj
 h:\graphics\nclgl\debug\quaternion.obj
+h:\graphics\nclgl\debug\plane.obj
 h:\graphics\nclgl\debug\oglrenderer.obj
 h:\graphics\nclgl\debug\objmesh.obj
 h:\graphics\nclgl\debug\mouse.obj
@@ -12,12 +14,12 @@ h:\graphics\nclgl\debug\md5mesh.obj
 h:\graphics\nclgl\debug\md5filedata.obj
 h:\graphics\nclgl\debug\md5anim.obj
 h:\graphics\nclgl\debug\matrix4.obj
+h:\graphics\nclgl\debug\light.obj
 h:\graphics\nclgl\debug\keyboard.obj
-h:\graphics\nclgl\debug\gametimer.obj
-h:\graphics\nclgl\debug\camera.obj
-h:\graphics\nclgl\debug\plane.obj
-h:\graphics\nclgl\debug\frustum.obj
 h:\graphics\nclgl\debug\heightmap.obj
+h:\graphics\nclgl\debug\gametimer.obj
+h:\graphics\nclgl\debug\frustum.obj
+h:\graphics\nclgl\debug\camera.obj
 h:\graphics\graphics for games\debug\nclgl.lib
 h:\graphics\graphics for games\debug\nclgl.pdb
 h:\graphics\nclgl\debug\nclgl.tlog\cl.command.1.tlog

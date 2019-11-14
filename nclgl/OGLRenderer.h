@@ -30,11 +30,10 @@ _-_-_-_-_-_-_-""  ""
 #include "Quaternion.h"
 #include "Matrix4.h"
 #include "Window.h"
-//#include "light.h"
+#include "light.h"
 
 #include "Shader.h"		//Students make this file...
 #include "Mesh.h"		//And this one...
-#include "Light.h"
 
 using std::vector;
 
@@ -118,7 +117,7 @@ protected:
 	virtual void	Resize(int x, int y);	
 	void			UpdateShaderMatrices();
 	void			SetCurrentShader(Shader*s);
-	void			SetShaderLight(const Light& l);
+	void			SetShaderLight(const Light &l);
 
 	void			SetTextureRepeating(GLuint target, bool state);
 
