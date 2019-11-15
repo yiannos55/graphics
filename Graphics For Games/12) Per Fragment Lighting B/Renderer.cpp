@@ -38,6 +38,12 @@ Renderer ::~Renderer(void) {
 void Renderer::UpdateScene(float msec) {
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
+
+	Vector3 lightPos = light->GetPosition();
+	Matrix4 rot = Matrix4::Rotation(msec/10, Vector3(0, 1, 0));
+	
+	lightPos = rot * lightPos;
+	light->SetPosition(lightPos);
 }
 
 void Renderer::RenderScene() {

@@ -35,13 +35,28 @@ void Renderer::UpdateScene(float msec) {
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
 }
+float time = 0.0f;
 
 void Renderer::RenderScene() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (time > 1.0f) {
+		time -= 0.1f;
+	}
+	time += 0.1f;
+	/*
+	
+		if (time > 10.0f) {
+		time = 0.0f;
+	}
+	time += 0.1f;
 
+	
+	*/
 	glUseProgram(currentShader->GetProgram());
 	UpdateShaderMatrices();
-
+	
+	
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "time"),time);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
 
 	heightMap->Draw();

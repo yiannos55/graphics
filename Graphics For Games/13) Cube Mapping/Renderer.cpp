@@ -5,7 +5,11 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent){
 	heightMap	= new HeightMap(TEXTUREDIR"/terrain.raw");
 	quad		= Mesh::GenerateQuad();
 
-	camera->SetPosition(Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0F, 500.0F, RAW_WIDTH * HEIGHTMAP_X));
+	///////////////////////////////////
+	
+
+	///////////////////////////////////
+	camera->SetPosition(Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 400.0f, RAW_WIDTH * HEIGHTMAP_X));
 
 	light = new Light(Vector3(	(RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500.0f, 
 								(RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)),
@@ -51,7 +55,8 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent){
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 Renderer::~Renderer(void) {
