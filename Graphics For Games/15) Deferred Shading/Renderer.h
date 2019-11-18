@@ -9,6 +9,7 @@
 #define LIGHTNUM 8
 
 class Renderer : public OGLRenderer{
+public:
 	Renderer(Window& parent);
 	virtual ~Renderer(void);
 
@@ -40,7 +41,7 @@ protected:
 	GLuint bufferDepthTex;
 
 	GLuint pointLightFBO;
-	GLuint lightEmmisiveTex;
+	GLuint lightEmissiveTex;
 	GLuint lightSpecularTex;
 };
 

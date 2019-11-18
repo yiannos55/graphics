@@ -2,6 +2,7 @@
 
 #include "../../nclgl/OGLRenderer.h"
 #include "../../nclgl/Camera.h"
+#include "../../nclgl/OBJMesh.h"
 #include "../../nclgl/MD5Mesh.h"
 #include "../../nclgl/MD5Node.h"
 
@@ -21,9 +22,11 @@ protected:
 	void DrawFloor();
 	void DrawShadowScene();
 	void DrawCombinedScene();
+	void DrawSun();
 
 	Shader* sceneShader;
 	Shader* shadowShader;
+	OBJMesh* sun;
 
 	GLuint shadowTex;
 	GLuint shadowFBO;

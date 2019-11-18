@@ -5,6 +5,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	camera = new  Camera(-8.0f, 40.0f, Vector3(-200.0f, 50.0f, 250.0f));
 	light = new Light(Vector3(-450.0f, 200.0f, 280.0f), Vector4(1, 1, 1, 1), 5500.0f);
 
+	sun = new OBJMesh();
+	
 	hellData = new MD5FileData(MESHDIR"hellknight.md5mesh");
 	hellNode = new MD5Node(*hellData);
 
@@ -15,6 +17,10 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 								SHADERDIR"shadowscenefrag.glsl");
 	shadowShader = new Shader(SHADERDIR"shadowVert.glsl",
 								SHADERDIR"shadowFrag.glsl");
+
+	if (!sun->LoadOBJMesh(MESHDIR"ico.obj")) {
+		return;
+	}
 
 	if(!sceneShader->LinkProgram() || !shadowShader->LinkProgram()) {
 		return;
@@ -59,6 +65,7 @@ Renderer::~Renderer(void) {
 	delete light;
 	delete hellData;
 	delete hellNode;
+	delete sun;
 	delete floor;
 
 	delete sceneShader;
@@ -72,10 +79,12 @@ void Renderer::UpdateScene(float msec) {
 
 
 	Vector3 lightPos = light->GetPosition();
+
 	Matrix4 rot = Matrix4::Rotation(msec / 10, Vector3(0, 1, 0));
 
 	lightPos = rot * lightPos;
 	light->SetPosition(lightPos);
+
 }
 
 void Renderer::RenderScene() {
@@ -83,8 +92,14 @@ void Renderer::RenderScene() {
 
 	DrawShadowScene();
 	DrawCombinedScene();
+	DrawSun();
 
 	SwapBuffers();
+}
+
+void Renderer::DrawSun() {
+	modelMatrix = Matrix4::Translation(light->GetPosition());
+	sun->Draw();
 }
 
 void Renderer::DrawShadowScene() {
