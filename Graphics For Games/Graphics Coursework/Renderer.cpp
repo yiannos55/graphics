@@ -11,7 +11,7 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 								SHADERDIR"reflectFragment.glsl");
 	skyboxShader = new Shader(SHADERDIR"skyboxVertex.glsl",
 								SHADERDIR"skyboxFragment.glsl");
-	lightShader = new Shader(SHADERDIR"PerPixelVertex.glsl",
+	lightShader = new Shader(SHADERDIR"lightvertex.glsl",
 								SHADERDIR"PerPixelFragment.glsl");
 
 	light = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500.0f, (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)),
@@ -25,17 +25,12 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 	
 	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	heightMap->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "Barren Reds.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	heightMap->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "grass.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	heightMap->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR "Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
 
-	//cubeMap = SOIL_load_OGL_cubemap(
-	//	TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
-	//	TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
-	//	TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
-	//	SOIL_LOAD_RGB,
-	//	SOIL_CREATE_NEW_ID, 0
-	//);
+	rocks = SOIL_load_OGL_texture(TEXTUREDIR"snow.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	heightMap->SetTexture2(rocks);
 
 	cubeMap = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"mystic_ft.png", TEXTUREDIR"mystic_bk.png",
@@ -49,6 +44,7 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 		return;
 	}
 	SetTextureRepeating(heightMap->GetTexture(), true);
+	SetTextureRepeating(heightMap->GetTexture2(), true);
 	SetTextureRepeating(heightMap->GetBumpMap(), true);
 	SetTextureRepeating(quad->GetTexture(), true);
 
@@ -73,6 +69,7 @@ Renderer::~Renderer(void) {
 	delete lightShader;
 	delete reflectShader;
 	delete skyboxShader;
+
 	currentShader = 0;
 }
 void Renderer::UpdateScene(float msec) {
@@ -81,11 +78,18 @@ void Renderer::UpdateScene(float msec) {
 	waterRotate += msec / 1000.0f;
 }
 
+float time = 0.0f;
+
 void Renderer::RenderScene() {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+	
+	if (time <= 1.0f) {
+		time+=0.002f;
+	}
 	DrawSkybox();
 	DrawWater();
+		
 	DrawHeightmap();
 
 	SwapBuffers();
@@ -109,6 +113,9 @@ void Renderer::DrawHeightmap() {
 	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "bumpTex"), 1);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "rockTex"), 3);
+
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "time"), time);
 
 	modelMatrix.ToIdentity();
 	textureMatrix.ToIdentity();

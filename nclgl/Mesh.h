@@ -14,7 +14,9 @@ public:
 	static Mesh* GenerateQuad();
 
 	void SetTexture(GLuint tex) { texture = tex; }
+	void SetTexture2(GLuint tex) { texture2 = tex; }
 	GLuint GetTexture() { return texture; }
+	GLuint GetTexture2() { return texture2; }
 
 	void SetBumpMap(GLuint tex) { bumpTexure = tex; }
 	GLuint GetBumpMap() { return bumpTexure; }
@@ -29,6 +31,7 @@ protected:
 
 
 	GLuint texture;
+	GLuint texture2;
 	Vector2* textureCoords;
 
 	GLuint arrayObject;

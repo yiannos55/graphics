@@ -45,6 +45,9 @@ void Mesh::Draw() {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, bumpTexure);
 
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
 	glBindVertexArray(arrayObject);
 
 	if (bufferObject[INDEX_BUFFER]) {

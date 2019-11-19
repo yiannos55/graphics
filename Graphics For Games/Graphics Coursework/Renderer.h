@@ -3,6 +3,8 @@
 #include "../../nclgl/OGLRenderer.h"
 #include "../../nclgl/Camera.h"
 #include "../../nclgl/HeightMap.h"
+#include "../../nclgl/OBJMesh.h"
+
 
 class Renderer : public OGLRenderer {
 public:
@@ -28,6 +30,8 @@ protected:
 	Camera* camera;
 
 	GLuint cubeMap;
+
+	GLuint rocks;
 
 	float waterRotate;
 };
