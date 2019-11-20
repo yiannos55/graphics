@@ -2,27 +2,29 @@
 
 Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 	camera = new Camera(0.0f, 0.0f,
-					Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 1000, RAW_HEIGHT * HEIGHTMAP_Z));
+		Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 1000, RAW_HEIGHT * HEIGHTMAP_Z));
 
 	heightMap = new HeightMap(TEXTUREDIR"myTerrain.raw");
 	quad = Mesh::GenerateQuad();
 
 	reflectShader = new Shader(SHADERDIR"PerPixelVertex.glsl",
-								SHADERDIR"reflectFragment.glsl");
+		SHADERDIR"reflectFragment.glsl");
 	skyboxShader = new Shader(SHADERDIR"skyboxVertex.glsl",
-								SHADERDIR"skyboxFragment.glsl");
+		SHADERDIR"skyboxFragment.glsl");
 	lightShader = new Shader(SHADERDIR"lightvertex.glsl",
-								SHADERDIR"PerPixelFragment.glsl");
+		SHADERDIR"PerPixelFragment.glsl");
 
-	light = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 2.0f), 500.0f, (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)),
-		Vector4(1, 1, 1, 1),
-		(RAW_WIDTH * RAW_WIDTH));
+	light = new Light(Vector3(10000.0f, 13000.0f, 25000.0f), Vector4(1, 1, 1, 1), (RAW_WIDTH * RAW_WIDTH));
 
+	sun = new OBJMesh();
+	sun->LoadOBJMesh(MESHDIR"sphere.obj");
+	moon = new OBJMesh();
+	moon->LoadOBJMesh(MESHDIR"sphere.obj");
 
 	if (!reflectShader->LinkProgram() || !lightShader->LinkProgram() || !skyboxShader->LinkProgram()) {
 		return;
 	}
-	
+
 	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
 	heightMap->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "grass.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
@@ -50,7 +52,8 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 
 	waterRotate = 0.0f;
 
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+	projMatrix = Matrix4::Perspective(100.0f, 150000.0f, (float)width / (float)height, 45.0f);
+
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -70,12 +73,21 @@ Renderer::~Renderer(void) {
 	delete reflectShader;
 	delete skyboxShader;
 
+	delete sun;
+	delete moon;
+
 	currentShader = 0;
 }
 void Renderer::UpdateScene(float msec) {
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
 	waterRotate += msec / 1000.0f;
+
+	Vector3 lightPos = light->GetPosition();
+	Matrix4 rot = Matrix4::Rotation(msec / 40, Vector3(1, 0, 0));
+
+	lightPos = rot * lightPos;
+	light->SetPosition(lightPos);
 }
 
 float time = 0.0f;
@@ -83,16 +95,46 @@ float time = 0.0f;
 void Renderer::RenderScene() {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	
+
 	if (time <= 1.0f) {
-		time+=0.002f;
+		time += 0.002f;
 	}
 	DrawSkybox();
 	DrawWater();
-		
 	DrawHeightmap();
-
+	DrawSun();
+	DrawMoon();
+	cout << camera->GetPosition() << endl;
 	SwapBuffers();
+}
+
+
+void Renderer::DrawSun() {
+	SetCurrentShader(lightShader);
+	SetShaderLight(*light);
+
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+
+	modelMatrix = Matrix4::Translation(Vector3(light->GetPosition())) *
+		Matrix4::Scale(Vector3(300, 300, 300));
+	UpdateShaderMatrices();
+
+	sun->Draw();
+}
+
+void Renderer::DrawMoon() {
+	SetCurrentShader(lightShader);
+	SetShaderLight(*light);
+
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+
+	modelMatrix = Matrix4::Translation(-(Vector3(light->GetPosition()))) *
+		Matrix4::Scale(Vector3(300, 300, 300));
+	UpdateShaderMatrices();
+
+	sun->Draw();
 }
 
 void Renderer::DrawSkybox() {
@@ -123,7 +165,6 @@ void Renderer::DrawHeightmap() {
 	UpdateShaderMatrices();
 
 	heightMap->Draw();
-
 	glUseProgram(0);
 }
 
@@ -155,3 +196,4 @@ void Renderer::DrawWater() {
 
 	glUseProgram(0);
 }
+

@@ -4,6 +4,8 @@
 #include "../../nclgl/Camera.h"
 #include "../../nclgl/HeightMap.h"
 #include "../../nclgl/OBJMesh.h"
+#include "../../nclgl/MD5Mesh.h"
+#include "../../nclgl/MD5Node.h"
 
 
 class Renderer : public OGLRenderer {
@@ -18,6 +20,10 @@ protected:
 	void DrawHeightmap();
 	void DrawWater();
 	void DrawSkybox();
+	void DrawSun();
+	void DrawMoon();
+
+
 
 	Shader* lightShader;
 	Shader* reflectShader;
@@ -25,6 +31,9 @@ protected:
 
 	HeightMap* heightMap;
 	Mesh* quad;
+
+	OBJMesh* sun;
+	OBJMesh* moon;
 
 	Light* light;
 	Camera* camera;

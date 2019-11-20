@@ -22,12 +22,14 @@ public:
 	Camera(void){
 		yaw		= 0.0f;
 		pitch	= 0.0f;
+		setStartPos();
 	};
 
 	Camera(float pitch, float yaw, Vector3 position){
 		this->pitch		= pitch;
 		this->yaw		= yaw;
 		this->position	= position;
+		setStartPos();
 	}
 
 	~Camera(void){};
@@ -54,7 +56,12 @@ public:
 	void	SetPitch(float p) {pitch = p;}
 
 protected:
+
+	void setStartPos();
 	float	yaw;
 	float	pitch;
 	Vector3 position;
+	int i = 0;
+	Vector3 tmpPosition;
+	float tempo = 0.0f;
 };

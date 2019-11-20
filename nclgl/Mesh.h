@@ -21,6 +21,9 @@ public:
 	void SetBumpMap(GLuint tex) { bumpTexure = tex; }
 	GLuint GetBumpMap() { return bumpTexure; }
 
+	Vector3 GetPosition() const { return position; }
+	void SetPosition(Vector3 val) { position = val; }
+
 protected:
 	void BufferData();
 	void GenerateNormals();
@@ -47,4 +50,6 @@ protected:
 	Vector3* normals;
 	Vector3* tangents;
 	GLuint bumpTexure;
+	Vector3 position;
+
 };
