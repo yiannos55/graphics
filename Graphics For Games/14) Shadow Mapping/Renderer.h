@@ -22,11 +22,11 @@ protected:
 	void DrawFloor();
 	void DrawShadowScene();
 	void DrawCombinedScene();
-	void DrawSun();
+	//void DrawSun();
 
 	Shader* sceneShader;
 	Shader* shadowShader;
-	OBJMesh* sun;
+	//OBJMesh* sun;
 
 	GLuint shadowTex;
 	GLuint shadowFBO;

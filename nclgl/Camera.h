@@ -65,6 +65,9 @@ protected:
 	float	pitch;
 	Vector3 position;
 	int i = 0;
-	Vector3 tmpPosition;
 	float tempo = 0.0f;
+
+	vector<Vector3> cameraPositions;
+	vector<Vector2> cameraPitchandYaw;
+
 };

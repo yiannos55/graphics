@@ -1,3 +1,18 @@
 ﻿  Camera.cpp
-D:\UoN MSc Computer Games Engineering\Advanced Graphics for Games\graphicsUni\nclgl\Camera.cpp(70,9): warning C4018: '>=': signed/unsigned mismatch
-  nclgl.vcxproj -> D:\UoN MSc Computer Games Engineering\Advanced Graphics for Games\graphicsUni\Graphics For Games\Debug\nclgl.lib
+  Frustum.cpp
+  HeightMap.cpp
+  Matrix4.cpp
+  MD5Anim.cpp
+  MD5FileData.cpp
+  MD5Mesh.cpp
+  MD5Node.cpp
+  Mesh.cpp
+  OBJMesh.cpp
+  OGLRenderer.cpp
+  Quaternion.cpp
+  SceneNode.cpp
+  Shader.cpp
+  Window.cpp
+  Generating Code...
+H:\graphics\graphics\nclgl\Camera.cpp(61,9): warning C4018:  '>=': signed/unsigned mismatch
+  nclgl.vcxproj -> H:\graphics\graphics\Graphics For Games\Debug\nclgl.lib

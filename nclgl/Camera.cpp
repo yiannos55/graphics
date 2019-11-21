@@ -10,10 +10,6 @@ float lerp(float v0, float v1, float t) {
 	return (1 - t) * v0 + t * v1;
 }
 
-vector<Vector3> cameraPositions;
-vector<Vector2> cameraPitchandYaw;
-//vector<Vector3> endPos;
-
 void Camera :: setStartPos() {
 	cameraPositions.push_back(Vector3(2009.0f, 1509.0f, 14653.0f));
 	cameraPositions.push_back(Vector3(14161.0f, 1726.0f, 15727.0f));
@@ -26,7 +22,7 @@ void Camera::setPitchandYaw() {
 		cameraPitchandYaw.push_back(Vector2(-28.0f, 156.3f));
 }
 
-bool autoCam = true;
+bool autoCam = false;
 
 void Camera::UpdateCamera(float msec)	{
 	//Update the mouse by how much
@@ -51,11 +47,6 @@ void Camera::UpdateCamera(float msec)	{
 	
 	if (autoCam) {
 	
-		//position = Vector3(	lerp(tmpPosition.x ,cameraPositions[i].x, tempo),
-		//						lerp(tmpPosition.y, cameraPositions[i].y, tempo),
-		//						lerp(tmpPosition.z, cameraPositions[i].z, tempo));
-
-		
 		position = Vector3(lerp(this->GetPosition().x, cameraPositions[i].x, 0.03f),
 							lerp(this->GetPosition().y, cameraPositions[i].y, 0.03f),
 							lerp(this->GetPosition().z, cameraPositions[i].z, 0.03f));
@@ -95,10 +86,6 @@ void Camera::UpdateCamera(float msec)	{
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_E)) {
 		autoCam = !autoCam;
-		if (autoCam)
-		{
-			tmpPosition = position;
-		}
 	}
 }
 

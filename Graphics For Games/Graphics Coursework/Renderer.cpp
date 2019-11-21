@@ -7,12 +7,22 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 	heightMap = new HeightMap(TEXTUREDIR"myTerrain.raw");
 	quad = Mesh::GenerateQuad();
 
-	reflectShader = new Shader(SHADERDIR"PerPixelVertex.glsl",
-		SHADERDIR"reflectFragment.glsl");
-	skyboxShader = new Shader(SHADERDIR"skyboxVertex.glsl",
-		SHADERDIR"skyboxFragment.glsl");
-	lightShader = new Shader(SHADERDIR"lightvertex.glsl",
-		SHADERDIR"PerPixelFragment.glsl");
+
+
+	reflectShader = new Shader(SHADERDIR"PerPixelVertex.glsl", SHADERDIR"reflectFragment.glsl");
+	skyboxShader = new Shader(SHADERDIR"skyboxVertex.glsl", SHADERDIR"skyboxFragment.glsl");
+	lightShader = new Shader(SHADERDIR"lightvertex.glsl", SHADERDIR"PerPixelFragment.glsl");
+	skeletonShader = new Shader(SHADERDIR"hellVert.glsl", SHADERDIR"hellfrag.glsl");
+
+	shadowShader = new Shader(SHADERDIR"shadowVert.glsl", SHADERDIR"shadowFrag.glsl");
+
+	sceneShader = new Shader(SHADERDIR"shadowscenevert.glsl", SHADERDIR"shadowscenefrag.glsl");
+
+	hellData = new MD5FileData(MESHDIR"hellknight.md5mesh");
+	hellNode = new MD5Node(*hellData);
+
+	hellData->AddAnim(MESHDIR"idle2.md5anim");
+	hellNode->PlayAnim(MESHDIR"idle2md5anim");
 
 	light = new Light(Vector3(10000.0f, 13000.0f, 25000.0f), Vector4(1, 1, 1, 1), (RAW_WIDTH * RAW_WIDTH));
 
@@ -21,7 +31,9 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 	moon = new OBJMesh();
 	moon->LoadOBJMesh(MESHDIR"sphere.obj");
 
-	if (!reflectShader->LinkProgram() || !lightShader->LinkProgram() || !skyboxShader->LinkProgram()) {
+
+
+	if (!reflectShader->LinkProgram() || !lightShader->LinkProgram() || !skyboxShader->LinkProgram() || !skeletonShader->LinkProgram()) {
 		return;
 	}
 
@@ -33,6 +45,7 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 
 	rocks = SOIL_load_OGL_texture(TEXTUREDIR"snow.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	heightMap->SetTexture2(rocks);
+
 
 	cubeMap = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"mystic_ft.png", TEXTUREDIR"mystic_bk.png",
@@ -54,6 +67,26 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 
 	projMatrix = Matrix4::Perspective(100.0f, 150000.0f, (float)width / (float)height, 45.0f);
 
+	////////////////
+	glGenTextures(1, &shadowTex);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glGenFramebuffers(1, &shadowFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
+
+	glDrawBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	////////////////
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -65,6 +98,10 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 }
 
 Renderer::~Renderer(void) {
+
+	glDeleteTextures(1, &shadowTex);
+	glDeleteFramebuffers(1, &shadowFBO);
+
 	delete camera;
 	delete heightMap;
 	delete light;
@@ -72,9 +109,16 @@ Renderer::~Renderer(void) {
 	delete lightShader;
 	delete reflectShader;
 	delete skyboxShader;
+	delete skeletonShader;
 
 	delete sun;
 	delete moon;
+
+	delete hellData;
+	delete hellNode;
+
+	delete sceneShader;
+	delete shadowShader;
 
 	currentShader = 0;
 }
@@ -99,17 +143,97 @@ void Renderer::RenderScene() {
 	if (time <= 1.0f) {
 		time += 0.002f;
 	}
-	DrawSkybox();
-	DrawWater();
-	DrawHeightmap();
-	DrawSun();
-	DrawMoon();
-	cout << camera->GetPosition() << endl;
-	cout << camera->GetPitch() << endl;
-	cout << camera->GetYaw() << endl;
+
+
+
+
+	//cout << camera->GetPosition() << endl;
+	//cout << camera->GetPitch() << endl;
+	//cout << camera->GetYaw() << endl;
+	DrawShadowScene();
+	DrawCombinedScene();
+
 	SwapBuffers();
 }
+/////////////////////
+void Renderer::DrawShadowScene() {
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+	SetCurrentShader(shadowShader);
+
+	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(0, 0, 0));
+	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
+
+	UpdateShaderMatrices();
+	DrawSkybox();
+
+	DrawWater();
+	DrawHeightmap();
+	DrawKnights();
+	DrawSun();
+	DrawMoon();
+
+	glUseProgram(0);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glViewport(0, 0, width, height);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::DrawCombinedScene() {
+	SetCurrentShader(sceneShader);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "bumpTex"), 1);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "shadowTex"), 2);
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
+
+	SetShaderLight(*light);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+
+	viewMatrix = camera->BuildViewMatrix();
+	UpdateShaderMatrices();
+
+	DrawSkybox();
+
+	DrawWater();
+	DrawHeightmap();
+	DrawKnights();
+	DrawSun();
+	DrawMoon();
+
+	glUseProgram(0);
+}
+
+
+////////////////////
+
+
+void Renderer::DrawKnights() {
+	SetCurrentShader(skeletonShader);
+	SetShaderLight(*light);
+	UpdateShaderMatrices();
+
+	modelMatrix = Matrix4::Translation(Vector3(5000.0f, 190.0f, 13000.0f)) * (hellNode->GetTransform() * Matrix4::Scale(hellNode->GetModelScale()));
+
+	Matrix4 tempMatrix = textureMatrix * modelMatrix;
+
+	tempMatrix.ToIdentity();
+
+	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(), "textureMatrix"), 1, false, *&tempMatrix.values);
+	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"), 1, false, *&modelMatrix.values);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+
+	hellNode->Draw(*this);
+
+
+}
 
 void Renderer::DrawSun() {
 	SetCurrentShader(lightShader);
@@ -137,6 +261,7 @@ void Renderer::DrawMoon() {
 	UpdateShaderMatrices();
 
 	moon->Draw();
+	glUseProgram(0);
 }
 
 void Renderer::DrawSkybox() {
