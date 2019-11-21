@@ -105,6 +105,8 @@ void Renderer::RenderScene() {
 	DrawSun();
 	DrawMoon();
 	cout << camera->GetPosition() << endl;
+	cout << camera->GetPitch() << endl;
+	cout << camera->GetYaw() << endl;
 	SwapBuffers();
 }
 
@@ -134,7 +136,7 @@ void Renderer::DrawMoon() {
 		Matrix4::Scale(Vector3(300, 300, 300));
 	UpdateShaderMatrices();
 
-	sun->Draw();
+	moon->Draw();
 }
 
 void Renderer::DrawSkybox() {

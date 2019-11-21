@@ -1,3 +1,3 @@
 ﻿  Camera.cpp
-H:\graphics\nclgl\Camera.cpp(61,9): warning C4018:  '>=': signed/unsigned mismatch
-  nclgl.vcxproj -> H:\graphics\Graphics For Games\Debug\nclgl.lib
+D:\UoN MSc Computer Games Engineering\Advanced Graphics for Games\graphicsUni\nclgl\Camera.cpp(70,9): warning C4018: '>=': signed/unsigned mismatch
+  nclgl.vcxproj -> D:\UoN MSc Computer Games Engineering\Advanced Graphics for Games\graphicsUni\Graphics For Games\Debug\nclgl.lib

@@ -11,12 +11,19 @@ float lerp(float v0, float v1, float t) {
 }
 
 vector<Vector3> cameraPositions;
+vector<Vector2> cameraPitchandYaw;
 //vector<Vector3> endPos;
 
 void Camera :: setStartPos() {
-	cameraPositions.push_back(Vector3(-2394.0f, 4470.0f, 20075.0f));
-	cameraPositions.push_back(Vector3(13323.0f, 1268.0f, 14475.0f));
-	cameraPositions.push_back(Vector3(12645.0f, 2419.0f, 998.0f));
+	cameraPositions.push_back(Vector3(2009.0f, 1509.0f, 14653.0f));
+	cameraPositions.push_back(Vector3(14161.0f, 1726.0f, 15727.0f));
+	cameraPositions.push_back(Vector3(11493.0f, 3281.0f, -815.0f));
+}
+
+void Camera::setPitchandYaw() {
+		cameraPitchandYaw.push_back(Vector2(-23.0f, 320.0f));
+		cameraPitchandYaw.push_back(Vector2(-23.0f, 45.f));
+		cameraPitchandYaw.push_back(Vector2(-28.0f, 156.3f));
 }
 
 bool autoCam = true;
@@ -48,13 +55,15 @@ void Camera::UpdateCamera(float msec)	{
 		//						lerp(tmpPosition.y, cameraPositions[i].y, tempo),
 		//						lerp(tmpPosition.z, cameraPositions[i].z, tempo));
 
-
+		
 		position = Vector3(lerp(this->GetPosition().x, cameraPositions[i].x, 0.03f),
 							lerp(this->GetPosition().y, cameraPositions[i].y, 0.03f),
 							lerp(this->GetPosition().z, cameraPositions[i].z, 0.03f));
 
+		this->SetPitch(lerp(this->GetPitch(), cameraPitchandYaw[i].x, 0.03f));
+		this->SetYaw(lerp(this->GetYaw(), cameraPitchandYaw[i].y, 0.03f));
 
-		if (tempo>=1.0f) {
+		if (tempo>=3.0f) {
 			i++;
 			tempo = 0.0f;
 		}
