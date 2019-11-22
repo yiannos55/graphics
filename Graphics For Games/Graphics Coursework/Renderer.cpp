@@ -24,14 +24,14 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 	hellData->AddAnim(MESHDIR"idle2.md5anim");
 	hellNode->PlayAnim(MESHDIR"idle2md5anim");
 
-	light = new Light(Vector3(10000.0f, 13000.0f, 25000.0f), Vector4(1, 1, 1, 1), (RAW_WIDTH * RAW_WIDTH));
+	light = new Light(Vector3(10000.0f, 10000.0f, 15000.0f), Vector4(1, 1, 1, 1), (RAW_WIDTH * RAW_WIDTH));
+	//light = new Light(Vector3((RAW_WIDTH * HEIGHTMAP_X) / 2, 0, (RAW_WIDTH * HEIGHTMAP_Z) /2), Vector4(1, 1, 1, 1), (RAW_WIDTH * RAW_WIDTH));
 
 	sun = new OBJMesh();
 	sun->LoadOBJMesh(MESHDIR"sphere.obj");
-	moon = new OBJMesh();
-	moon->LoadOBJMesh(MESHDIR"sphere.obj");
-
-
+	//moon = new OBJMesh();
+	//moon->LoadOBJMesh(MESHDIR"sphere.obj");
+	
 
 	if (!reflectShader->LinkProgram() || !lightShader->LinkProgram() || !skyboxShader->LinkProgram() || !skeletonShader->LinkProgram()) {
 		return;
@@ -112,7 +112,7 @@ Renderer::~Renderer(void) {
 	delete skeletonShader;
 
 	delete sun;
-	delete moon;
+	//delete moon;
 
 	delete hellData;
 	delete hellNode;
@@ -127,12 +127,22 @@ void Renderer::UpdateScene(float msec) {
 	viewMatrix = camera->BuildViewMatrix();
 	waterRotate += msec / 1000.0f;
 
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_R)) {
+		lightrot = !lightrot;
+		if (lightrot) {
+			rotateLight(msec);
+		}
+	}
+}
+
+void Renderer::rotateLight(float msec) {
 	Vector3 lightPos = light->GetPosition();
 	Matrix4 rot = Matrix4::Rotation(msec / 40, Vector3(1, 0, 0));
-
 	lightPos = rot * lightPos;
 	light->SetPosition(lightPos);
 }
+
+
 
 float time = 0.0f;
 
@@ -161,27 +171,32 @@ void Renderer::DrawShadowScene() {
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
+	//glCullFace(GL_BACK);
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	SetCurrentShader(shadowShader);
 
-	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(0, 0, 0));
-	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
+	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3((HEIGHTMAP_X * RAW_WIDTH) / 2, 0, (HEIGHTMAP_Z * RAW_HEIGHT) / 2));
+	projMatrix = Matrix4::Perspective(2000, 30000, 1, 75);
+	shadowMatrix = biasMatrix * (projMatrix * viewMatrix);
 
 	UpdateShaderMatrices();
-	DrawSkybox();
 
 	DrawWater();
+	glDisable(GL_CULL_FACE);
 	DrawHeightmap();
+	glEnable(GL_CULL_FACE);
 	DrawKnights();
-	DrawSun();
-	DrawMoon();
+	//DrawMoon();
+
+	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = Matrix4::Perspective(100.0f, 150000.0f, (float)width / (float)height, 45.0f);
 
 	glUseProgram(0);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glViewport(0, 0, width, height);
-
+	//glCullFace(GL_FRONT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -200,27 +215,24 @@ void Renderer::DrawCombinedScene() {
 	viewMatrix = camera->BuildViewMatrix();
 	UpdateShaderMatrices();
 
+	glDisable(GL_CULL_FACE);
 	DrawSkybox();
-
+	glEnable(GL_CULL_FACE);
 	DrawWater();
 	DrawHeightmap();
 	DrawKnights();
 	DrawSun();
-	DrawMoon();
+	//DrawMoon();
 
 	glUseProgram(0);
 }
-
-
 ////////////////////
-
 
 void Renderer::DrawKnights() {
 	SetCurrentShader(skeletonShader);
 	SetShaderLight(*light);
 	UpdateShaderMatrices();
 
-	modelMatrix = Matrix4::Translation(Vector3(5000.0f, 190.0f, 13000.0f)) * (hellNode->GetTransform() * Matrix4::Scale(hellNode->GetModelScale()));
 
 	Matrix4 tempMatrix = textureMatrix * modelMatrix;
 
@@ -230,9 +242,18 @@ void Renderer::DrawKnights() {
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"), 1, false, *&modelMatrix.values);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
 
-	hellNode->Draw(*this);
+	//cameraPositions.push_back(Vector3(2009.0f, 1509.0f, 14653.0f));
 
+	for (int y = 0; y < 3; ++y) {
+		for (int x = 0; x < 3; ++x) {
+			modelMatrix = Matrix4::Translation(Vector3(3500.0f + (x * 125), 220.0f, 12500.0f + (y * 125))) *
+			(hellNode->GetTransform() * Matrix4::Scale(hellNode->GetModelScale())) *
+			Matrix4::Rotation(20 * x + 10 * y + 10, Vector3(0, 1, 0));
 
+			UpdateShaderMatrices();
+			hellNode->Draw(*this);
+		}
+	}
 }
 
 void Renderer::DrawSun() {
@@ -249,20 +270,20 @@ void Renderer::DrawSun() {
 	sun->Draw();
 }
 
-void Renderer::DrawMoon() {
-	SetCurrentShader(lightShader);
-	SetShaderLight(*light);
-
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
-
-	modelMatrix = Matrix4::Translation(-(Vector3(light->GetPosition()))) *
-		Matrix4::Scale(Vector3(300, 300, 300));
-	UpdateShaderMatrices();
-
-	moon->Draw();
-	glUseProgram(0);
-}
+//void Renderer::DrawMoon() {
+//	SetCurrentShader(lightShader);
+//	SetShaderLight(*light);
+//
+//	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
+//	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+//
+//	modelMatrix = Matrix4::Translation(-(Vector3(light->GetPosition()))) *
+//		Matrix4::Scale(Vector3(300, 300, 300));
+//	UpdateShaderMatrices();
+//
+//	moon->Draw();
+//	glUseProgram(0);
+//}
 
 void Renderer::DrawSkybox() {
 	glDepthMask(GL_FALSE);
@@ -282,6 +303,7 @@ void Renderer::DrawHeightmap() {
 	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "bumpTex"), 1);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "shadowTex"), 2);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "rockTex"), 3);
 
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "time"), time);

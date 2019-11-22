@@ -29,6 +29,11 @@ protected:
 	void DrawShadowScene();
 	void DrawCombinedScene();
 
+	void rotateLight(float msec);
+
+	bool lightrot = true;
+
+
 	Shader* lightShader;
 	Shader* reflectShader;
 	Shader* skyboxShader;
@@ -45,7 +50,8 @@ protected:
 	Mesh* quad;
 
 	OBJMesh* sun;
-	OBJMesh* moon;
+
+	//OBJMesh* moon;
 
 	Light* light;
 	Camera* camera;

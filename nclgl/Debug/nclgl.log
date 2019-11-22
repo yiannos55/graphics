@@ -1,7 +1,6 @@
 ﻿  Camera.cpp
   Frustum.cpp
   HeightMap.cpp
-  Matrix4.cpp
   MD5Anim.cpp
   MD5FileData.cpp
   MD5Mesh.cpp
@@ -9,7 +8,6 @@
   Mesh.cpp
   OBJMesh.cpp
   OGLRenderer.cpp
-  Quaternion.cpp
   SceneNode.cpp
   Shader.cpp
   Window.cpp

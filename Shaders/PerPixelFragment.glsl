@@ -3,6 +3,7 @@
 uniform sampler2D diffuseTex;
 uniform sampler2D bumpTex;
 uniform sampler2D rockTex;
+uniform sampler2DShadow shadowTex;
 
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
@@ -14,6 +15,7 @@ vec3 colour;
 vec2 texCoord;
 vec3 normal;
 vec3 worldPos;
+vec4 shadowProj;
 }IN;
 
 out vec4 fragColour;
@@ -44,6 +46,11 @@ vec3 halfDir = normalize(incident + viewDir);
 float rFactor = max(0.0, dot(halfDir, IN.normal));
 float sFactor = pow(rFactor, 50.0);
 
+float shadow = 1.0;
+if (IN.shadowProj.w > 0.0) {
+	shadow = textureProj(shadowTex, IN.shadowProj);
+}
+lambert *= shadow;
 
 vec4 texColour = mix(diffuse, rock, blend(IN.worldPos.y));
 
