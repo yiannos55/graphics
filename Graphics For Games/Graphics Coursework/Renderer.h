@@ -8,7 +8,8 @@
 #include "../../nclgl/MD5Node.h"
 
 
-#define SHADOWSIZE 2048
+#define SHADOWSIZE 4096
+#define POST_PASSES 10
 
 class Renderer : public OGLRenderer {
 public:
@@ -18,27 +19,48 @@ public:
 	virtual void RenderScene();
 	virtual void UpdateScene(float msec);
 
+
+
 protected:
 	void DrawHeightmap();
 	void DrawWater();
 	void DrawSkybox();
 	void DrawSun();
-	void DrawMoon();
+	//void DrawMoon();
 	void DrawKnights();
 
 	void DrawShadowScene();
 	void DrawCombinedScene();
+	///////////post process
+	Mesh* quad;
+	Shader* processShader;
+	void DrawPostProcessBlurr();
+
+	void DrawPostProcessEdge();
+	
+	void PresentScene(GLuint tex);
+	GLuint bufferFBO;
+	GLuint processFBO;
+	GLuint bufferColourTex[2];
+	GLuint bufferDepthTex;
+	
+	GLuint splitFBO;
+
+	//////////////
 
 	void rotateLight(float msec);
 
 	bool lightrot = true;
-
+	bool blur=false;
+	bool split = false;
+	bool edge = false;
 
 	Shader* lightShader;
 	Shader* reflectShader;
 	Shader* skyboxShader;
 	Shader* skeletonShader;
-
+	Shader* postProcessShader;
+	Shader* processShaderEdge;
 
 
 	Shader* shadowShader;
@@ -47,7 +69,7 @@ protected:
 
 
 	HeightMap* heightMap;
-	Mesh* quad;
+	Mesh* water;
 
 	OBJMesh* sun;
 
@@ -64,6 +86,9 @@ protected:
 
 	GLuint shadowTex;
 	GLuint shadowFBO;
+
+	GLuint splitTex;
+
 
 	float waterRotate;
 };

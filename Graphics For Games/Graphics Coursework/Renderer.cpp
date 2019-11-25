@@ -5,8 +5,8 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 		Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f, 1000, RAW_HEIGHT * HEIGHTMAP_Z));
 
 	heightMap = new HeightMap(TEXTUREDIR"myTerrain.raw");
+	water = Mesh::GenerateQuad();
 	quad = Mesh::GenerateQuad();
-
 
 
 	reflectShader = new Shader(SHADERDIR"PerPixelVertex.glsl", SHADERDIR"reflectFragment.glsl");
@@ -18,13 +18,18 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 
 	sceneShader = new Shader(SHADERDIR"shadowscenevert.glsl", SHADERDIR"shadowscenefrag.glsl");
 
+	postProcessShader = new Shader(SHADERDIR"TexturedVertexPost.glsl", SHADERDIR"TexturedFragment.glsl");
+	
+	/* post process testing */ processShader = new Shader(SHADERDIR "TexturedVertexPost.glsl", SHADERDIR "processfrag.glsl");
+	processShaderEdge = new Shader(SHADERDIR "TexturedVertexPost.glsl", SHADERDIR "edgeDetFrag.glsl");
+
 	hellData = new MD5FileData(MESHDIR"hellknight.md5mesh");
 	hellNode = new MD5Node(*hellData);
 
 	hellData->AddAnim(MESHDIR"idle2.md5anim");
 	hellNode->PlayAnim(MESHDIR"idle2md5anim");
 
-	light = new Light(Vector3(10000.0f, 10000.0f, 15000.0f), Vector4(1, 1, 1, 1), (RAW_WIDTH * RAW_WIDTH));
+	light = new Light(Vector3(1, 15000.0f, 0), Vector4(1, 1, 1, 1), (RAW_WIDTH * RAW_WIDTH));
 	//light = new Light(Vector3((RAW_WIDTH * HEIGHTMAP_X) / 2, 0, (RAW_WIDTH * HEIGHTMAP_Z) /2), Vector4(1, 1, 1, 1), (RAW_WIDTH * RAW_WIDTH));
 
 	sun = new OBJMesh();
@@ -33,11 +38,12 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 	//moon->LoadOBJMesh(MESHDIR"sphere.obj");
 	
 
-	if (!reflectShader->LinkProgram() || !lightShader->LinkProgram() || !skyboxShader->LinkProgram() || !skeletonShader->LinkProgram()) {
+	if (!reflectShader->LinkProgram()	|| !skyboxShader->LinkProgram() || !lightShader->LinkProgram()	 || !skeletonShader->LinkProgram()		|| 
+		!shadowShader->LinkProgram()	|| !sceneShader->LinkProgram()	|| !processShader->LinkProgram() || !postProcessShader->LinkProgram()	/*|| !processShaderEdge->LinkProgram()*/) {
 		return;
 	}
 
-	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	water->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
 	heightMap->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR "grass.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	heightMap->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR "Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
@@ -61,13 +67,69 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 	SetTextureRepeating(heightMap->GetTexture(), true);
 	SetTextureRepeating(heightMap->GetTexture2(), true);
 	SetTextureRepeating(heightMap->GetBumpMap(), true);
-	SetTextureRepeating(quad->GetTexture(), true);
+	SetTextureRepeating(water->GetTexture(), true);
 
 	waterRotate = 0.0f;
 
 	projMatrix = Matrix4::Perspective(100.0f, 150000.0f, (float)width / (float)height, 45.0f);
+	/////////////////////////// post process
+	glGenTextures(1, &bufferDepthTex);
+	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height,
+		0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+	// And our colour texture ...
+	for (int i = 0; i < 2; ++i) {
+		glGenTextures(1, &bufferColourTex[i]);
+		glBindTexture(GL_TEXTURE_2D, bufferColourTex[i]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	}
 
-	////////////////
+	glGenFramebuffers(1, &bufferFBO); // We ’ll render the scene into this
+	glGenFramebuffers(1, &processFBO); // And do post processing in this
+
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_TEXTURE_2D, bufferDepthTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+		GL_TEXTURE_2D, bufferDepthTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, bufferColourTex[0], 0);
+
+	// We can check FBO attachment success using this command !
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE || !bufferDepthTex || !bufferColourTex[0]) {
+		return;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	///////////////////////////end post process
+
+	glGenTextures(1, &splitTex);
+	glBindTexture(GL_TEXTURE_2D, splitTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width/2, height/2, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glGenFramebuffers(1, &splitFBO);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, splitFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, splitTex, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//////////////// shadows
 	glGenTextures(1, &shadowTex);
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -79,6 +141,7 @@ Renderer::Renderer(Window& parent) :OGLRenderer(parent) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+
 
 	glGenFramebuffers(1, &shadowFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
@@ -102,10 +165,24 @@ Renderer::~Renderer(void) {
 	glDeleteTextures(1, &shadowTex);
 	glDeleteFramebuffers(1, &shadowFBO);
 
+
+	////////
+	glDeleteTextures(2, bufferColourTex);
+	glDeleteTextures(1, &bufferDepthTex);
+	glDeleteTextures(1, &splitTex);
+	glDeleteFramebuffers(1, &bufferFBO);
+	glDeleteFramebuffers(1, &processFBO);
+
+	glDeleteFramebuffers(1, &splitFBO);
+	delete quad;
+	delete processShader;
+	delete postProcessShader;
+	delete processShaderEdge;
+	//////////
 	delete camera;
 	delete heightMap;
 	delete light;
-	delete quad;
+	delete water;
 	delete lightShader;
 	delete reflectShader;
 	delete skyboxShader;
@@ -133,6 +210,15 @@ void Renderer::UpdateScene(float msec) {
 			rotateLight(msec);
 		}
 	}
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_B)) {
+		blur = !blur;
+	}
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_C)) {
+		split = !split;
+	}
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_J)) {
+		edge = !edge;
+	}
 }
 
 void Renderer::rotateLight(float msec) {
@@ -142,9 +228,9 @@ void Renderer::rotateLight(float msec) {
 	light->SetPosition(lightPos);
 }
 
-
-
 float time = 0.0f;
+
+
 
 void Renderer::RenderScene() {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -153,32 +239,178 @@ void Renderer::RenderScene() {
 	if (time <= 1.0f) {
 		time += 0.002f;
 	}
-
-
-
-
 	//cout << camera->GetPosition() << endl;
 	//cout << camera->GetPitch() << endl;
 	//cout << camera->GetYaw() << endl;
-	DrawShadowScene();
-	DrawCombinedScene();
 
+	DrawShadowScene();
+	//DrawCombinedScene();
+	//if (blur) {
+	//	DrawPostProcessBlurr();
+	//}
+	//PresentScene();
+	//SwapBuffers();
+
+	///////////////////////////->>split screen 
+	if (!split) {
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+		glViewport(0, 0, width, height);
+		DrawCombinedScene();
+		if (blur) {
+			DrawPostProcessBlurr();
+		}
+		if (edge) {
+			DrawPostProcessEdge();
+		}
+		PresentScene(bufferColourTex[0]);
+		//SwapBuffers();
+	}else {
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		projMatrix = Matrix4::Perspective(100.0f, 150000.0f, ((float)width) / ((float)height), 45.0f);
+		glViewport(0, 0, width/2, height/2);
+		DrawCombinedScene();
+		PresentScene(bufferColourTex[0]);
+		//SwapBuffers();
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		projMatrix = Matrix4::Perspective(100.0f, 150000.0f, ((float)width) / ((float)height), 45.0f);
+		glViewport(width/2, 0, width/2, height/2);
+		DrawCombinedScene();
+		PresentScene(bufferColourTex[0]);
+
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		projMatrix = Matrix4::Perspective(100.0f, 150000.0f, ((float)width) / ((float)height), 45.0f);
+		glViewport(0, height/2, width / 2, height/2);
+		DrawCombinedScene();
+		PresentScene(bufferColourTex[0]);
+
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		projMatrix = Matrix4::Perspective(100.0f, 150000.0f, ((float)width) / ((float)height), 45.0f);
+		glViewport(width / 2, height/2, width / 2, height/2);
+		DrawCombinedScene();
+		PresentScene(bufferColourTex[0]);
+		//SwapBuffers();
+	}
+	glViewport(0, 0, width, height);
 	SwapBuffers();
+	////////////////////////////split screen end!!
 }
-/////////////////////
+/////////////////////////post process edge detection
+void Renderer::DrawPostProcessEdge() {
+	modelMatrix.ToIdentity();
+	textureMatrix.ToIdentity();
+	glBindFramebuffer(GL_FRAMEBUFFER, processFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, bufferColourTex[1], 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(processShaderEdge);
+
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+	viewMatrix.ToIdentity();
+	UpdateShaderMatrices();
+
+	glDisable(GL_DEPTH_TEST);
+
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(),
+		"pixelSize"), 1.0f / width, 1.0f / height);
+	for (int i = 0; i < POST_PASSES; ++i) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, bufferColourTex[1], 0);
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"isVertical"), 0);
+
+		quad->SetTexture(bufferColourTex[0]);
+		quad->Draw();
+		// Now to swap the colour buffers , and do the second blur pass
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"isVertical"), 1);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, bufferColourTex[0], 0);
+
+		quad->SetTexture(bufferColourTex[1]);
+		quad->Draw();
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glUseProgram(0);
+
+	glEnable(GL_DEPTH_TEST);
+}
+
+
+///////////////////////post process edge detection end----------
+
+//////////////////////////post process blurr
+void Renderer::DrawPostProcessBlurr() {
+	modelMatrix.ToIdentity();
+	textureMatrix.ToIdentity();
+	glBindFramebuffer(GL_FRAMEBUFFER, processFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, bufferColourTex[1], 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(processShader);
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+	viewMatrix.ToIdentity();
+	UpdateShaderMatrices();
+
+	glDisable(GL_DEPTH_TEST);
+
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(),
+		"pixelSize"), 1.0f / width, 1.0f / height);
+	for (int i = 0; i < POST_PASSES; ++i) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, bufferColourTex[1], 0);
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"isVertical"), 0);
+
+		quad->SetTexture(bufferColourTex[0]);
+		quad->Draw();
+		// Now to swap the colour buffers , and do the second blur pass
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"isVertical"), 1);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, bufferColourTex[0], 0);
+
+		quad->SetTexture(bufferColourTex[1]);
+		quad->Draw();
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glUseProgram(0);
+
+	glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::PresentScene(GLuint tex) {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	SetCurrentShader(postProcessShader);
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+	viewMatrix.ToIdentity();
+	//modelMatrix.ToIdentity();
+	//textureMatrix.ToIdentity();
+	UpdateShaderMatrices();
+	quad->SetTexture(tex);
+	quad->Draw();
+	glUseProgram(0);
+}
+
+
+
+//////////////////////////
+///////////////////// shadow testing-->>>
 void Renderer::DrawShadowScene() {
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	//glCullFace(GL_BACK);
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	SetCurrentShader(shadowShader);
 
-	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3((HEIGHTMAP_X * RAW_WIDTH) / 2, 0, (HEIGHTMAP_Z * RAW_HEIGHT) / 2));
-	projMatrix = Matrix4::Perspective(2000, 30000, 1, 75);
+	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(0, 0, 0));
+	projMatrix = Matrix4::Perspective(6800, 21400, 1, 85);
 	shadowMatrix = biasMatrix * (projMatrix * viewMatrix);
 
 	UpdateShaderMatrices();
@@ -196,11 +428,14 @@ void Renderer::DrawShadowScene() {
 	glUseProgram(0);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glViewport(0, 0, width, height);
-	//glCullFace(GL_FRONT);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::DrawCombinedScene() {
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
 	SetCurrentShader(sceneShader);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "bumpTex"), 1);
@@ -223,7 +458,10 @@ void Renderer::DrawCombinedScene() {
 	DrawKnights();
 	DrawSun();
 	//DrawMoon();
+	//quad->SetTexture(bufferColourTex[0]);
+	//quad->Draw();
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
 }
 ////////////////////
@@ -246,7 +484,7 @@ void Renderer::DrawKnights() {
 
 	for (int y = 0; y < 3; ++y) {
 		for (int x = 0; x < 3; ++x) {
-			modelMatrix = Matrix4::Translation(Vector3(3500.0f + (x * 125), 220.0f, 12500.0f + (y * 125))) *
+			modelMatrix = Matrix4::Translation(Vector3(3500.0f + (x * 125)-RAW_WIDTH * HEIGHTMAP_X / 2.0f, 220.0f, 12500.0f + (y * 125)-RAW_HEIGHT * HEIGHTMAP_Z / 2.0f)) *
 			(hellNode->GetTransform() * Matrix4::Scale(hellNode->GetModelScale())) *
 			Matrix4::Rotation(20 * x + 10 * y + 10, Vector3(0, 1, 0));
 
@@ -257,7 +495,7 @@ void Renderer::DrawKnights() {
 }
 
 void Renderer::DrawSun() {
-	SetCurrentShader(lightShader);
+	SetCurrentShader(skeletonShader);
 	SetShaderLight(*light);
 
 	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
@@ -290,7 +528,7 @@ void Renderer::DrawSkybox() {
 	SetCurrentShader(skyboxShader);
 
 	UpdateShaderMatrices();
-	quad->Draw();
+	water->Draw();
 
 	glUseProgram(0);
 	glDepthMask(GL_TRUE);
@@ -332,7 +570,7 @@ void Renderer::DrawWater() {
 	float heightY = 256 * HEIGHTMAP_Y / 3.0f;
 	float heightZ = (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f);
 
-	modelMatrix = Matrix4::Translation(Vector3(heightX, heightY - 260, heightZ)) *
+	modelMatrix = Matrix4::Translation(Vector3(0, heightY - 260, 0)) *
 		Matrix4::Scale(Vector3(heightX, 1, heightZ)) *
 		Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f));
 
@@ -341,7 +579,7 @@ void Renderer::DrawWater() {
 
 	UpdateShaderMatrices();
 
-	quad->Draw();
+	water->Draw();
 
 	glUseProgram(0);
 }

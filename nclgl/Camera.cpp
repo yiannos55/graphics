@@ -1,5 +1,5 @@
 #include "Camera.h"
-
+#include "..//Graphics For Games/Graphics Coursework/Renderer.h"
 /*
 Polls the camera for keyboard / mouse movement.
 Should be done once per frame! Pass it the msec since
@@ -87,6 +87,7 @@ void Camera::UpdateCamera(float msec)	{
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_E)) {
 		autoCam = !autoCam;
 	}
+
 }
 
 /*
