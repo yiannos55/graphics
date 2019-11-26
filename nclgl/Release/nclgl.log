@@ -1,0 +1,4 @@
+﻿  Camera.cpp
+H:\graphics\graphics\nclgl\Camera.cpp(30,54): warning C4305:  'argument': truncation from 'double' to 'const float'
+H:\graphics\graphics\nclgl\Camera.cpp(71,9): warning C4018:  '>=': signed/unsigned mismatch
+  nclgl.vcxproj -> H:\graphics\graphics\Graphics For Games\Release\nclgl.lib

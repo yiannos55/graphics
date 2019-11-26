@@ -20,8 +20,8 @@ _-_-_-_-_-_-_-""  ""
 class Camera	{
 public:
 	Camera(void){
-		yaw		= -28.0f;
-		pitch	= 156.0f;
+		yaw = -30.17f;
+		pitch	= 183.726f;
 		setPitchandYaw();
 		setStartPos();
 	};
@@ -66,6 +66,7 @@ protected:
 	Vector3 position;
 	int i = 0;
 	float tempo = 0.0f;
+	bool autoCam = false;
 
 	vector<Vector3> cameraPositions;
 	vector<Vector2> cameraPitchandYaw;

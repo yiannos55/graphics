@@ -19,61 +19,50 @@ public:
 	virtual void RenderScene();
 	virtual void UpdateScene(float msec);
 
-
-
 protected:
 	void DrawHeightmap();
 	void DrawWater();
 	void DrawSkybox();
 	void DrawSun();
-	//void DrawMoon();
 	void DrawKnights();
-
 	void DrawShadowScene();
 	void DrawCombinedScene();
-	///////////post process
-	Mesh* quad;
-	Shader* processShader;
+	void splitScreen();
 	void DrawPostProcessBlurr();
-
-	void DrawPostProcessEdge();
-	
+	void edgeDetection();
 	void PresentScene(GLuint tex);
-	GLuint bufferFBO;
-	GLuint processFBO;
-	GLuint bufferColourTex[2];
-	GLuint bufferDepthTex;
-	
-	GLuint splitFBO;
-
-	//////////////
-
 	void rotateLight(float msec);
 
-	bool lightrot = true;
-	bool blur=false;
-	bool split = false;
-	bool edge = false;
-
+	Mesh* quad;
+	Shader* processShader;
 	Shader* lightShader;
 	Shader* reflectShader;
 	Shader* skyboxShader;
 	Shader* skeletonShader;
 	Shader* postProcessShader;
 	Shader* processShaderEdge;
-
-
 	Shader* shadowShader;
 	Shader* sceneShader;
 
+	GLuint bufferFBO;
+	GLuint processFBO;
+	GLuint shadowFBO;
 
+	GLuint bufferColourTex[2];
+	GLuint bufferDepthTex;
+	GLuint shadowTex;
+
+	bool lightrot = true;
+	bool blur=false;
+	bool split = false;
+	bool edge = false;
+	float time = 0.0f;
+	float waterRotate;
 
 	HeightMap* heightMap;
 	Mesh* water;
 
 	OBJMesh* sun;
-
-	//OBJMesh* moon;
 
 	Light* light;
 	Camera* camera;
@@ -83,13 +72,5 @@ protected:
 	
 	MD5FileData* hellData;
 	MD5Node* hellNode;
-
-	GLuint shadowTex;
-	GLuint shadowFBO;
-
-	GLuint splitTex;
-
-
-	float waterRotate;
 };
 

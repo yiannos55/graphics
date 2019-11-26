@@ -41,7 +41,7 @@ using std::vector;
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "SOIL.lib")
 
-#define OPENGL_DEBUGGING
+//#define OPENGL_DEBUGGING
 
 static const float biasValues[16] = {
 	0.5, 0.0, 0.0, 0.0,
@@ -147,7 +147,7 @@ protected:
 	static OGLRenderer*	  debugDrawingRenderer;
 	static Shader*		  debugDrawShader;
 
-#ifdef _DEBUG
+#ifdef OPENGL_DEBUGGING
 	static void CALLBACK DebugCallback(GLuint source, GLuint type,GLuint id, GLuint severity,
 									   int length, const char* message, void* userParam);
 #endif

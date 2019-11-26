@@ -11,18 +11,28 @@ float lerp(float v0, float v1, float t) {
 }
 
 void Camera :: setStartPos() {
-	cameraPositions.push_back(Vector3(2009.0f, 1509.0f, 14653.0f));
-	cameraPositions.push_back(Vector3(14161.0f, 1726.0f, 15727.0f));
-	cameraPositions.push_back(Vector3(11493.0f, 3281.0f, -815.0f));
+	cameraPositions.push_back(Vector3(-8734.0f, 1818.0f, 10133.0f));
+	cameraPositions.push_back(Vector3(3874.94f, 1850.72f, -6194.06f));
+	cameraPositions.push_back(Vector3(10719.9f, 2984.84f, 2232.68f));
+	cameraPositions.push_back(Vector3(2662.0f, 1700.53f, 5776.80f));
+	cameraPositions.push_back(Vector3(-6986.85f, 799.906f, 5743.31f));
+	cameraPositions.push_back(Vector3(-5571.55f, 599.719f, 4341.31f));
+	cameraPositions.push_back(Vector3(-9255.1f, 1633.59f, 1318.73f));
+	cameraPositions.push_back(Vector3(-632.335f, 6153.78f, -12104.1f));
 }
 
 void Camera::setPitchandYaw() {
-		cameraPitchandYaw.push_back(Vector2(-23.0f, 320.0f));
-		cameraPitchandYaw.push_back(Vector2(-23.0f, 45.f));
-		cameraPitchandYaw.push_back(Vector2(-28.0f, 156.3f));
+	cameraPitchandYaw.push_back(Vector2(-17.8f, 331.0f));
+	cameraPitchandYaw.push_back(Vector2(-5.39f, 178.488f));
+	cameraPitchandYaw.push_back(Vector2(-18.55f, 86.79f));
+	cameraPitchandYaw.push_back(Vector2(-19.25f, 58.018f));
+	cameraPitchandYaw.push_back(Vector2(-14.14f, 300.417f));
+	cameraPitchandYaw.push_back(Vector2(-12.74, 267.517f));
+	cameraPitchandYaw.push_back(Vector2(-16.8f, 282.847f));
+	cameraPitchandYaw.push_back(Vector2(-30.17f, 183.726f));
 }
 
-bool autoCam = false;
+
 
 void Camera::UpdateCamera(float msec)	{
 	//Update the mouse by how much
